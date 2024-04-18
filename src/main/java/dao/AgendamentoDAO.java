@@ -17,23 +17,16 @@ public class AgendamentoDAO implements IDatabaseCRUD<Agendamento>{
     @Override
     public void save(Agendamento agendamento) throws SQLException {
         LocalDate DataAgendamento = agendamento.getData();
-        LocalTime horaTime = agendamento.getHora();
-        String sql = "INSERT INTO agendamento(DATA, CPF, OBSERVACAO, TIPOCONSULTA, MEDICO, CONVENIO, NOME, HORA) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ;";
+        String sql = "INSERT INTO agendamento(DATA, MEDICO, NOME) VALUES (?, ?, ?) ;";
         PreparedStatement ps = null;
 
         Date data = Date.valueOf(DataAgendamento);
-        Time hora = Time.valueOf(horaTime);
 
         try{
             ps = Database.getConexao().prepareStatement(sql.toString());
             ps.setDate(1, data);
-            ps.setString(2, agendamento.getCPF());
-            ps.setString(3, agendamento.getObservacao());
-            ps.setString(4, agendamento.getTipoConsulta());
-            ps.setString(5, agendamento.getMedico());
-            ps.setString(6, agendamento.getConvenio());
-            ps.setString(7, agendamento.getNome());
-            ps.setTime(8, hora);
+            ps.setString(2, agendamento.getMedico());
+            ps.setString(3, agendamento.getNome());
 
             ps.executeUpdate();
             ps.close();
@@ -47,8 +40,8 @@ public class AgendamentoDAO implements IDatabaseCRUD<Agendamento>{
 
     @Override
     public Agendamento search(Long id) throws SQLException {
-        String sql = "SELECT A.IDAgendamento, A.Dia, P.CPF, A.observacoes, A.TipoConsulta, " +
-        "M.Nome AS NomeMedico, C.Nome AS NomeConvenio, P.Nome AS NomePaciente, A.hora " +
+        String sql = "SELECT A.IDAgendamento, A.Dia, A.motivo, " +
+        "M.Nome AS NomeMedico, P.Nome AS NomePaciente " +
         "FROM Agendamento A "+
         "JOIN PACIENTE P ON A.IDPaciente = P.IDPaciente "+
         "LEFT JOIN Medico M ON A.IDMedico = M.IDMedico "+
@@ -62,9 +55,8 @@ public class AgendamentoDAO implements IDatabaseCRUD<Agendamento>{
             ResultSet result = ps.executeQuery();
             Agendamento agendamento = null;
             if (result.next()){
-                agendamento =  new Agendamento(result.getLong("IDAgendamento"), result.getDate("Dia").toLocalDate(), result.getString("CPF"), 
-                result.getString("observacoes"), result.getString("TipoConsulta"), result.getString("NomeMedico"), 
-                result.getString("NomeConvenio"), result.getString("Nome"), result.getTime("hora").toLocalTime());
+                agendamento =  new Agendamento(result.getLong("IDAgendamento"), result.getDate("Dia").toLocalDate(), 
+                result.getString("motivo"), result.getString("NomeMedico"), result.getString("Nome"));
             }
             return agendamento;
         } catch(SQLException e) {
@@ -96,19 +88,16 @@ public class AgendamentoDAO implements IDatabaseCRUD<Agendamento>{
 
     @Override
     public int update(Agendamento agendamento) throws SQLException{
-        String sql = "UPDATE agendamento SET Dia = ?, hora = ?, TipoConsulta = ? WHERE IDAgendamento = ?;";
+        String sql = "UPDATE agendamento SET Dia = ?, motivo = ? WHERE IDAgendamento = ?;";
         PreparedStatement ps = null;
         LocalDate DiaAgen = agendamento.getData();
-        LocalTime horaAgen = agendamento.getHora();
 
         try {
             Date Dia = Date.valueOf(DiaAgen);
-            Time hora = Time.valueOf(horaAgen);
             ps = Database.getConexao().prepareStatement(sql.toString());
             ps.setDate(1, Dia);
-            ps.setTime(2, hora);
-            ps.setString(3, agendamento.getTipoConsulta());
-            ps.setLong(4, agendamento.getID());
+            ps.setString(2, agendamento.getmotivo());
+            ps.setLong(3, agendamento.getID());
             int result = ps.executeUpdate();
             return result;
 
@@ -122,8 +111,8 @@ public class AgendamentoDAO implements IDatabaseCRUD<Agendamento>{
 
     @Override
     public ArrayList<Agendamento> findAll() throws SQLException {
-        String sql = "SELECT A.IDAgendamento, A.Dia, P.CPF, A.observacoes, A.TipoConsulta, " +
-        "M.Nome AS NomeMedico, C.Nome AS NomeConvenio, P.Nome AS NomePaciente, A.hora " +
+        String sql = "SELECT A.IDAgendamento, A.Dia, A.motivo, " +
+        "M.Nome AS NomeMedico, P.Nome AS NomePaciente " +
         "FROM Agendamento A "+
         "JOIN PACIENTE P ON A.IDPaciente = P.IDPaciente "+
         "LEFT JOIN Medico M ON A.IDMedico = M.IDMedico "+
@@ -138,15 +127,11 @@ public class AgendamentoDAO implements IDatabaseCRUD<Agendamento>{
             while (rs.next()) {
                 long id = rs.getLong("id");
                 LocalDate dia = rs.getDate("Dia").toLocalDate();
-                String cpf = rs.getString("CPF");
-                String observacao = rs.getString("observacoes");
-                String TipoConsulta = rs.getString("TipoCosnulta");
+                String motivo = rs.getString("motivo");
                 String Medico = rs.getString("Medico");
-                String convenio = rs.getString("Convenio");
                 String nome = rs.getString("Nome");
-                LocalTime hora = rs.getTime("hora").toLocalTime();
 
-                Agendamento agendamentos = new Agendamento(id, dia, cpf, observacao, TipoConsulta, Medico, convenio, nome, hora);
+                Agendamento agendamentos = new Agendamento(id, dia, motivo, Medico, nome);
                 agendamento.add(agendamentos);
             }
             return agendamento;

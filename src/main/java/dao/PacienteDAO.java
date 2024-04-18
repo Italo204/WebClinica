@@ -23,7 +23,7 @@ public class PacienteDAO implements IDatabaseCRUD<Paciente>{
     public void save(Paciente paciente) throws SQLException {
         LocalDate dataNas = paciente.getNascimento();
         
-        String sql = "INSERT INTO paciente(Nome, email, CPF, Telefone, Sexo, Nascimento) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO paciente(Nome, Telefone, Sexo, Nascimento) VALUES (?, ?, ?, )";
         PreparedStatement ps = null;
        
         Date nascimento = Date.valueOf(dataNas);
@@ -31,11 +31,9 @@ public class PacienteDAO implements IDatabaseCRUD<Paciente>{
         try{
             ps = Database.getConexao().prepareStatement(sql.toString());
             ps.setString(1, paciente.getNome());
-            ps.setString(2, paciente.getEmail());
-            ps.setString(3, paciente.getCPF());
-            ps.setString(4, paciente.getTelefone());
-            ps.setString(5, paciente.getSexo());
-            ps.setDate(6, nascimento);
+            ps.setString(2, paciente.getTelefone());
+            ps.setString(3, paciente.getSexo());
+            ps.setDate(4, nascimento);
 
             ps.executeUpdate();
             ps.close();
@@ -59,8 +57,7 @@ public class PacienteDAO implements IDatabaseCRUD<Paciente>{
             ResultSet result = ps.executeQuery();
             Paciente paciente = null;
             if (result.next()){
-                paciente =  new Paciente(result.getLong("IDPaciente"), result.getString("Nome"), result.getString("email"),
-                result.getString("CPF"), result.getString("Telefone"), result.getString("Sexo"), result.getDate("Nascimento").toLocalDate());
+                paciente =  new Paciente(result.getLong("IDPaciente"), result.getString("Nome"), result.getString("Telefone"), result.getString("Sexo"), result.getDate("Nascimento").toLocalDate());
             }
             return paciente;
         } catch(SQLException e) {
@@ -106,14 +103,6 @@ public class PacienteDAO implements IDatabaseCRUD<Paciente>{
                 sql.append("nome = ?, ");
                 hasFieldsToUpdate = true;
             }
-            if (paciente.getEmail() != null) {
-                sql.append("email = ?, ");
-                hasFieldsToUpdate = true;
-            }
-            if (paciente.getCPF() != null) {
-                sql.append("CPF = ?, ");
-                hasFieldsToUpdate = true;
-            }
             if (paciente.getTelefone() != null) {
                 sql.append("telefone = ?, ");
                 hasFieldsToUpdate = true;
@@ -143,12 +132,6 @@ public class PacienteDAO implements IDatabaseCRUD<Paciente>{
             int index = 1;
             if (paciente.getNome() != null) {
                 ps.setString(index++, paciente.getNome());
-            }
-            if (paciente.getEmail() != null) {
-                ps.setString(index++, paciente.getEmail());
-            }
-            if (paciente.getCPF() != null) {
-                ps.setString(index++, paciente.getCPF());
             }
             if (paciente.getTelefone() != null) {
                 ps.setString(index++, paciente.getTelefone());
@@ -189,7 +172,7 @@ public class PacienteDAO implements IDatabaseCRUD<Paciente>{
 
     @Override
     public ArrayList<Paciente> findAll() throws SQLException {
-        String sql = "SELECT IDPaciente, Telefone, CPF, Sexo, email, Nome, Nascimento FROM paciente";
+        String sql = "SELECT IDPaciente, Telefone, Sexo, Nome, Nascimento FROM paciente";
         PreparedStatement ps = null;
 
         try {
@@ -199,13 +182,11 @@ public class PacienteDAO implements IDatabaseCRUD<Paciente>{
             while(rs.next()){
                 long id = rs.getLong("IDPaciente");
                 String telefone = rs.getString("Telefone");
-                String cpf = rs.getString("CPF");
                 String sexo = rs.getString("Sexo");
-                String email = rs.getString("email");
                 String nome = rs.getString("Nome");
                 LocalDate nascimento = rs.getDate("Nascimento").toLocalDate();
 
-                Paciente pacientes = new Paciente(id, nome, email, cpf, telefone, sexo, nascimento);
+                Paciente pacientes = new Paciente(id, nome, telefone, sexo, nascimento);
                 paciente.add(pacientes);
             }
             return paciente;

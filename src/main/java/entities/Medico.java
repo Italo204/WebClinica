@@ -12,8 +12,12 @@ import java.time.LocalDate;
  */
 public class Medico extends Pessoa {
 
-      public Medico(long ID, String nome, String email, String senha, String CPF, String telefone, String sexo, LocalDate nascimento) {
-        super(ID, nome, email, senha, CPF, telefone, sexo, nascimento);
+    public Medico(){
+        
+    }
+
+    public Medico(long ID, String nome, String telefone, String sexo, LocalDate nascimento) {
+        super(ID, nome, telefone, sexo, nascimento);
     }
 
     @Override

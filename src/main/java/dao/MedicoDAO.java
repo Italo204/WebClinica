@@ -26,7 +26,7 @@ public class MedicoDAO implements IDatabaseCRUD<Medico>{
     public void save(Medico medico) throws SQLException {
         LocalDate dataNas = medico.getNascimento();
         
-        String sql = "INSERT INTO MEDICO(NOME, EMAIL, SENHA, CPF, TELEFONE, SEXO, NASCIMENTO) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO MEDICO(NOME, TELEFONE, SEXO, NASCIMENTO) VALUES (?, ?, ?, ?)";
         PreparedStatement ps = null;
        
         Date nascimento = Date.valueOf(dataNas);
@@ -34,9 +34,6 @@ public class MedicoDAO implements IDatabaseCRUD<Medico>{
         try{
             ps = Database.getConexao().prepareStatement(sql.toString());
             ps.setString(1, medico.getNome());
-            ps.setString(2, medico.getEmail());
-            ps.setString(3, medico.getSenha());
-            ps.setString(4, medico.getCPF());
             ps.setString(5, medico.getTelefone());
             ps.setString(6, medico.getSexo());
             ps.setDate(7, nascimento);
@@ -54,7 +51,7 @@ public class MedicoDAO implements IDatabaseCRUD<Medico>{
     @Override
     public Medico search(Long id) throws SQLException {
         
-        String sql = "SELECT IDMedico, Telefone, CPF, Sexo, Email, Nome, Senha, Nascimento FROM medico WHERE IDMedico = ?";
+        String sql = "SELECT IDMedico, Sexo, Nome, Nascimento FROM medico WHERE IDMedico = ?";
         PreparedStatement ps = null;
 
         try{
@@ -63,8 +60,7 @@ public class MedicoDAO implements IDatabaseCRUD<Medico>{
             ResultSet result = ps.executeQuery();
             Medico medico = null;
             if (result.next()){
-                medico =  new Medico(result.getLong("IDMedico"), result.getString("Telefone"), result.getString("CPF"),result.getString("Sexo"),
-                result.getString("Email"), result.getString("Nome"), result.getString("Senha"), result.getDate("Nascimento").toLocalDate());
+                medico =  new Medico(result.getLong("IDMedico"), result.getString("Nome"), result.getString("Telefone"), result.getString("Sexo"), result.getDate("Nascimento").toLocalDate());
             }
             return medico;
         } catch(SQLException e) {
@@ -110,18 +106,6 @@ public class MedicoDAO implements IDatabaseCRUD<Medico>{
                 sql.append("nome = ?, ");
                 hasFieldsToUpdate = true;
             }
-            if (medico.getEmail() != null) {
-                sql.append("email = ?, ");
-                hasFieldsToUpdate = true;
-            }
-            if (medico.getSenha() != null) {
-                sql.append("senha = ?, ");
-                hasFieldsToUpdate = true;
-            }
-            if (medico.getCPF() != null) {
-                sql.append("CPF = ?, ");
-                hasFieldsToUpdate = true;
-            }
             if (medico.getTelefone() != null) {
                 sql.append("telefone = ?, ");
                 hasFieldsToUpdate = true;
@@ -151,15 +135,6 @@ public class MedicoDAO implements IDatabaseCRUD<Medico>{
             int index = 1;
             if (medico.getNome() != null) {
                 ps.setString(index++, medico.getNome());
-            }
-            if (medico.getEmail() != null) {
-                ps.setString(index++, medico.getEmail());
-            }
-            if (medico.getSenha() != null) {
-                ps.setString(index++, medico.getSenha());
-            }
-            if (medico.getCPF() != null) {
-                ps.setString(index++, medico.getCPF());
             }
             if (medico.getTelefone() != null) {
                 ps.setString(index++, medico.getTelefone());
@@ -200,7 +175,7 @@ public class MedicoDAO implements IDatabaseCRUD<Medico>{
 
     @Override
     public ArrayList<Medico> findAll() throws SQLException {
-        String sql = "SELECT IDMedico, Telefone, CPF, Sexo, Email, Nome, Senha, Nascimento FROM medico ";
+        String sql = "SELECT IDMedico, Sexo, Nome, Nascimento FROM medico ";
         PreparedStatement ps = null;
 
         try {
@@ -210,14 +185,11 @@ public class MedicoDAO implements IDatabaseCRUD<Medico>{
             while(rs.next()){
                 long id = rs.getLong("IDMedico");
                 String telefone = rs.getString("Telefone");
-                String cpf = rs.getString("CPF");
                 String sexo = rs.getString("sexo");
-                String email = rs.getString("Email");
                 String nome = rs.getString("Nome");
-                String senha = rs.getString("Senha");
                 LocalDate nascimento = rs.getDate("Nascimento").toLocalDate();
 
-                Medico medicos = new Medico(id, nome, email, senha, cpf, telefone, sexo, nascimento);
+                Medico medicos = new Medico(id, nome, telefone, sexo, nascimento);
                 medico.add(medicos);
             }
             return medico;

@@ -5,9 +5,10 @@
 package controller;
 
 import java.io.IOException;
-import java.net.http.HttpResponse;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -32,46 +33,100 @@ public class AtendenteController extends HttpServlet{
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+        Long id = null;
         try {
             String idString = req.getParameter("ID");
-            Long id = Long.parseLong(idString);
-            Atendente atendente = this.atendenteServices.FindAtendente(id);
+            id = Long.parseLong(idString);
+        } catch (Exception e) {
+            res.getWriter().println("Não foi possível converter de String para Long");
+        }
+        if (id == null){
+            List<Atendente> atendentes = new ArrayList<>();
+            try {
+                atendentes = atendenteServices.findAllAtendentes();
+            } catch (SQLException e) {
+            }
+            Gson gson = new Gson();
+            String json = gson.toJson(atendentes);
+            res.setContentType("application/json");
+            res.getWriter().write(json);
+        } else{
+            Atendente atendente = new Atendente();
+            try {
+                atendente = atendenteServices.FindAtendente(id);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
             Gson gson = new Gson();
             String json = gson.toJson(atendente);
             res.setContentType("application/json");
             res.getWriter().write(json);
-        } catch (Exception e) {
-            // TODO: handle exception
         }
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException{
-        
+        try {
+            String nome = req.getParameter("nome");
+            String telefone = req.getParameter("telefone");
+            String sexo = req.getParameter("sexo");
+            String nascimentoString = req.getParameter("nascimento");
+            LocalDate nascimento = LocalDate.parse(nascimentoString);
+            Atendente atendente = new Atendente(nome, telefone, sexo, nascimento);
+            try {
+                atendenteServices.addAtendente(atendente);
+                res.setStatus(HttpServletResponse.SC_OK);
+            } catch (Exception e) {
+                res.getWriter().println("Erro ao adicionar atendente: " + e.getMessage());
+                res.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            }
+            
+        } catch (Exception e) {
+            res.getWriter().println("Erro: " + e.getMessage());
+        }
     }
     
-    public void deleteAtendente(Atendente atendente) {
+    @Override
+    protected void doDelete(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException{
         try {
-            this.atendenteServices.deleteAtendente(atendente.getID());
-        } catch (SQLException e) {
-            System.out.println("Não foi possível deletar atendente!");
+            String idString = req.getParameter("ID");
+            Long id = Long.parseLong(idString);
+            try {
+                atendenteServices.deleteAtendente(id);
+                res.setStatus(HttpServletResponse.SC_OK);
+            } catch (Exception e) {
+                res.getWriter().println("Erro ao deletar: " + e.getMessage());
+                res.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            }
+            
+        } catch (Exception e) {
+            res.getWriter().println("Erro ao deletar: " + e.getMessage());
+            res.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }
 
-    public void searchAtendente(Atendente atendente) {
+    @Override
+    protected void doPut(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
         try {
-            this.atendenteServices.FindAtendente(atendente.getID());
-        } catch (SQLException e) {
-            System.out.println("Não foi possível achar atendente!");
+            String nome = req.getParameter("nome");
+            String telefone = req.getParameter("telefone");
+            String sexo = req.getParameter("sexo");
+            String nascimentoString = req.getParameter("nascimento");
+            LocalDate nascimento = LocalDate.parse(nascimentoString);
+            Atendente atendente = new Atendente(nome, telefone, sexo, nascimento);
+            try {
+                atendenteServices.updateAtendente(atendente);
+                res.setStatus(HttpServletResponse.SC_OK);
+            } catch (Exception e) {
+                res.getWriter().println("Erro ao atualizar: " + e.getMessage());
+                res.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            }
+        } catch (Exception e) {
+            res.getWriter().println("Erro ao atualizar: " + e.getMessage());
+            res.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }
 
-    public ArrayList<Atendente> findAllAtendente() {
-        try {
-            return this.atendenteServices.findAllAtendentes();
-        } catch (SQLException e) {
-            System.out.println("Não foi possível achar os dados");
-            return null;
-        }
-    }
+
+    
 }
