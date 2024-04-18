@@ -4,13 +4,10 @@
  */
 package dao;
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDate;
 import java.util.ArrayList;
-import javax.swing.JOptionPane;
 import entities.Medico;
 import interfaces.IDatabaseCRUD;
 import utils.Database;
@@ -24,25 +21,19 @@ public class MedicoDAO implements IDatabaseCRUD<Medico>{
 
     @Override
     public void save(Medico medico) throws SQLException {
-        LocalDate dataNas = medico.getNascimento();
         
-        String sql = "INSERT INTO MEDICO(NOME, TELEFONE, SEXO, NASCIMENTO) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO MEDICO(NOME, ESPECIALIDADE) VALUES (?, ?)";
         PreparedStatement ps = null;
-       
-        Date nascimento = Date.valueOf(dataNas);
 
         try{
             ps = Database.getConexao().prepareStatement(sql.toString());
             ps.setString(1, medico.getNome());
-            ps.setString(5, medico.getTelefone());
-            ps.setString(6, medico.getSexo());
-            ps.setDate(7, nascimento);
+            ps.setString(2, medico.getEspecialidade());
 
             ps.executeUpdate();
             ps.close();
 
         } catch(SQLException e) {
-            JOptionPane.showMessageDialog(null, "Erro ao salvar: " + e.getMessage(), "ERRO", JOptionPane.ERROR_MESSAGE);
         } finally {
             Database.closeConnection();
         }
@@ -51,7 +42,7 @@ public class MedicoDAO implements IDatabaseCRUD<Medico>{
     @Override
     public Medico search(Long id) throws SQLException {
         
-        String sql = "SELECT IDMedico, Sexo, Nome, Nascimento FROM medico WHERE IDMedico = ?";
+        String sql = "SELECT ID, NOME, ESPECIALIDADE FROM medico WHERE ID = ?";
         PreparedStatement ps = null;
 
         try{
@@ -60,11 +51,10 @@ public class MedicoDAO implements IDatabaseCRUD<Medico>{
             ResultSet result = ps.executeQuery();
             Medico medico = null;
             if (result.next()){
-                medico =  new Medico(result.getLong("IDMedico"), result.getString("Nome"), result.getString("Telefone"), result.getString("Sexo"), result.getDate("Nascimento").toLocalDate());
+                medico =  new Medico(result.getLong("ID"), result.getString("NOME"), result.getString("ESPECIALIDADE"));
             }
             return medico;
         } catch(SQLException e) {
-            JOptionPane.showMessageDialog(null, "Erro: " + e.getMessage(), "ERRO", JOptionPane.ERROR_MESSAGE);
             return null;
         } finally {
             Database.closeConnection();
@@ -81,7 +71,6 @@ public class MedicoDAO implements IDatabaseCRUD<Medico>{
             int result = ps.executeUpdate();
             return result;
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(null, "Erro: " + e.getMessage(), "ERRO", JOptionPane.ERROR_MESSAGE);
             return -1;
         } finally {
             Database.closeConnection();
@@ -91,7 +80,7 @@ public class MedicoDAO implements IDatabaseCRUD<Medico>{
 
     @Override
     public int update(Medico medico) {
-        long id = medico.getID();
+        long id = medico.getId();
         
         PreparedStatement ps = null;
         Connection connection = Database.getConexao();
@@ -103,19 +92,11 @@ public class MedicoDAO implements IDatabaseCRUD<Medico>{
             // Verifica quais campos estão sendo atualizados e adiciona ao StringBuilder
             boolean hasFieldsToUpdate = false;
             if (medico.getNome() != null) {
-                sql.append("nome = ?, ");
+                sql.append("NOME = ?, ");
                 hasFieldsToUpdate = true;
             }
-            if (medico.getTelefone() != null) {
-                sql.append("telefone = ?, ");
-                hasFieldsToUpdate = true;
-            }
-            if (medico.getSexo() != null) {
-                sql.append("sexo = ?, ");
-                hasFieldsToUpdate = true;
-            }
-            if (medico.getNascimento() != null) {
-                sql.append("nascimento = ?, ");
+            if (medico.getEspecialidade() != null) {
+                sql.append("ESPECIALIDADE = ?, ");
                 hasFieldsToUpdate = true;
             }
             
@@ -136,14 +117,8 @@ public class MedicoDAO implements IDatabaseCRUD<Medico>{
             if (medico.getNome() != null) {
                 ps.setString(index++, medico.getNome());
             }
-            if (medico.getTelefone() != null) {
-                ps.setString(index++, medico.getTelefone());
-            }
-            if (medico.getSexo() != null) {
-                ps.setString(index++, medico.getSexo());
-            }
-            if (medico.getNascimento() != null) {
-                ps.setDate(index++, java.sql.Date.valueOf(medico.getNascimento()));
+            if (medico.getEspecialidade() != null) {
+                ps.setString(index++, medico.getEspecialidade());
             }
             
             ps.setLong(index, id);
@@ -152,7 +127,6 @@ public class MedicoDAO implements IDatabaseCRUD<Medico>{
             
             return result;
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(null, "ERRO: "+ e.getMessage(), "ERRO", JOptionPane.ERROR_MESSAGE);
             return -1;
         } finally {
             // Fechando recursos
@@ -181,20 +155,18 @@ public class MedicoDAO implements IDatabaseCRUD<Medico>{
         try {
             ps = Database.getConexao().prepareStatement(sql.toString());
             ResultSet rs = ps.executeQuery();
-            ArrayList<Medico> medico = new ArrayList<>();
+            ArrayList<Medico> medicos = new ArrayList<>();
             while(rs.next()){
-                long id = rs.getLong("IDMedico");
-                String telefone = rs.getString("Telefone");
-                String sexo = rs.getString("sexo");
+                long id = rs.getLong("ID");
+                String especialidade = rs.getString("Especialidade");
                 String nome = rs.getString("Nome");
-                LocalDate nascimento = rs.getDate("Nascimento").toLocalDate();
 
-                Medico medicos = new Medico(id, nome, telefone, sexo, nascimento);
-                medico.add(medicos);
+                Medico medico = new Medico(id, nome, especialidade);
+                medicos.add(medico);
             }
-            return medico;
+            return medicos;
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(null, "ERRO: " + e.getMessage(), "ERRO", JOptionPane.ERROR_MESSAGE);
+            
             return null;
         } finally {
             Database.closeConnection();

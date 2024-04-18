@@ -14,7 +14,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JOptionPane;
-import entities.Atendente;
+import entities.Funcionario;
 import utils.Database;
 
 
@@ -24,23 +24,20 @@ import utils.Database;
  * @author italo-santos-mendes
  */
 
-public class AtendenteDAO implements IDatabaseCRUD<Atendente>{
+public class FuncionarioDAO implements IDatabaseCRUD<Funcionario>{
 
     @Override
-    public void save(Atendente atendente) throws SQLException {
-        LocalDate dataNas = atendente.getNascimento();
+    public void save(Funcionario funcionario) throws SQLException {
         
-        String sql = "INSERT INTO atendente(NOME, TELEFONE, SEXO, NASCIMENTO) VALUES (?, ?, ?, ?);";
+        String sql = "INSERT INTO funcionario(NOME, CARGO) VALUES (?, ?);";
         PreparedStatement ps = null;
        
-        Date nascimento = Date.valueOf(dataNas);
+        
 
         try{
             ps = Database.getConexao().prepareStatement(sql.toString());
-            ps.setString(1, atendente.getNome());
-            ps.setString(2, atendente.getTelefone());
-            ps.setString(3, atendente.getSexo());
-            ps.setDate(4, nascimento);
+            ps.setString(1, funcionario.getNome());
+            ps.setString(2, funcionario.getCargo());
 
             ps.executeUpdate();
             ps.close();
@@ -53,20 +50,20 @@ public class AtendenteDAO implements IDatabaseCRUD<Atendente>{
     }
 
     @Override
-    public Atendente search(Long id) throws SQLException {
+    public Funcionario search(Long id) throws SQLException {
         
-        String sql = "SELECT * FROM atendente WHERE IDAtendente = ?;";
+        String sql = "SELECT * FROM funcionario WHERE ID = ?;";
         PreparedStatement ps = null;
 
         try{
             ps = Database.getConexao().prepareStatement(sql.toString());
             ps.setLong(1, id);
             ResultSet result = ps.executeQuery();
-            Atendente atendente = null;
+            Funcionario funcionario = null;
             if (result.next()){
-                atendente =  new Atendente(result.getLong("IDAtendente"), result.getString("nome"), result.getString("telefone"), result.getString("sexo"), result.getDate("nascimento").toLocalDate());
+                funcionario =  new Funcionario(result.getLong("ID"), result.getString("nome"), result.getString("cargo"));
             }
-            return atendente;
+            return funcionario;
         } catch(SQLException e) {
             JOptionPane.showMessageDialog(null, "Erro: " + e.getMessage(), "ERRO", JOptionPane.ERROR_MESSAGE);
             return null;
@@ -77,7 +74,7 @@ public class AtendenteDAO implements IDatabaseCRUD<Atendente>{
     
     @Override
     public int delete(Long id) throws SQLException{
-        String sql = "DELETE FROM atendente WHERE IDAtendente = ?";
+        String sql = "DELETE FROM funcionario WHERE ID = ?";
         PreparedStatement ps = null;
         try{
             ps = Database.getConexao().prepareStatement(sql.toString());
@@ -94,8 +91,8 @@ public class AtendenteDAO implements IDatabaseCRUD<Atendente>{
     }
 
     @Override
-    public int update(Atendente atendente) {
-        long id = atendente.getID();
+    public int update(Funcionario funcionario) {
+        long id = funcionario.getId();
         
         PreparedStatement ps = null;
         Connection connection = Database.getConexao();
@@ -103,34 +100,24 @@ public class AtendenteDAO implements IDatabaseCRUD<Atendente>{
         try {
             connection = Database.getConexao();
             
-            StringBuilder sql = new StringBuilder("UPDATE atendente SET ");
+            StringBuilder sql = new StringBuilder("UPDATE funcionario SET ");
             // Lista para armazenar os campos a serem atualizados
             List<String> campos = new ArrayList<>();
             
-            if (atendente.getNome() != null) {
+            if (funcionario.getNome() != null) {
                 sql.append("nome = ?, ");
-                campos.add(atendente.getNome());
+                campos.add(funcionario.getNome());
             }
             
-            if (atendente.getTelefone() != null) {
-                sql.append("telefone = ?, ");
-                campos.add(atendente.getTelefone());
-            }
-            
-            if (atendente.getSexo() != null) {
-                sql.append("sexo = ?, ");
-                campos.add(atendente.getSexo());
-            }
-            
-            if (atendente.getNascimento() != null) {
-                sql.append("nascimento = ?, ");
-                campos.add(atendente.getNascimento().toString()); // Supondo que getNascimento() retorna uma String formatada
+            if (funcionario.getCargo() != null) {
+                sql.append("cargo = ?, ");
+                campos.add(funcionario.getCargo());
             }
             
             // Remove a última vírgula adicionada ao final do StringBuilder
             sql.delete(sql.length() - 2, sql.length());
             
-            sql.append(" WHERE IDAtendente = ?");
+            sql.append(" WHERE ID = ?");
             
             ps = connection.prepareStatement(sql.toString());
             
@@ -168,25 +155,23 @@ public class AtendenteDAO implements IDatabaseCRUD<Atendente>{
     }
 
     @Override
-    public ArrayList<Atendente> findAll() throws SQLException {
-        String sql = "SELECT * FROM atendente";
+    public ArrayList<Funcionario> findAll() throws SQLException {
+        String sql = "SELECT * FROM funcionario";
         PreparedStatement ps = null;
 
         try {
             ps = Database.getConexao().prepareStatement(sql.toString());
             ResultSet rs = ps.executeQuery();
-            ArrayList<Atendente> atendente = new ArrayList<>();
+            ArrayList<Funcionario> funcionarios = new ArrayList<>();
             while(rs.next()){
-                long id = rs.getLong("IDAtendente");
-                String telefone = rs.getString("telefone");
+                long id = rs.getLong("ID");
+                String cargo = rs.getString("cargo");
                 String nome = rs.getString("nome");
-                String senha = rs.getString("senha");
-                LocalDate nascimento = rs.getDate("nascimento").toLocalDate();
 
-                Atendente atendentes = new Atendente(id, nome, senha, telefone, nascimento);
-                atendente.add(atendentes);
+                Funcionario funcionario = new Funcionario(id, nome, cargo);
+                funcionarios.add(funcionario);
             }
-            return atendente;
+            return funcionarios;
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "ERRO: " + e.getMessage(), "ERRO", JOptionPane.ERROR_MESSAGE);
             return null;

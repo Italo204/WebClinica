@@ -6,7 +6,6 @@ package controller;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,18 +17,18 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.google.gson.Gson;
 
-import entities.Atendente;
-import services.AtendenteServices;
+import entities.Funcionario;
+import services.FuncionarioServices;
 
 /**
  *
  * @author italo-santos-mendes
  */
 
- @WebServlet("/Atendente")
-public class AtendenteController extends HttpServlet{
+@WebServlet("/funcionario")
+public class FuncionarioController extends HttpServlet{
     private static final long serialVersionUID = 1L;
-    private final AtendenteServices atendenteServices = new AtendenteServices();
+    private final FuncionarioServices funcionarioServices = new FuncionarioServices();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
@@ -41,24 +40,24 @@ public class AtendenteController extends HttpServlet{
             res.getWriter().println("Não foi possível converter de String para Long");
         }
         if (id == null){
-            List<Atendente> atendentes = new ArrayList<>();
+            List<Funcionario> funcionarios = new ArrayList<>();
             try {
-                atendentes = atendenteServices.findAllAtendentes();
+                funcionarios = funcionarioServices.findAllFuncionarios();
             } catch (SQLException e) {
             }
             Gson gson = new Gson();
-            String json = gson.toJson(atendentes);
+            String json = gson.toJson(funcionarios);
             res.setContentType("application/json");
             res.getWriter().write(json);
         } else{
-            Atendente atendente = new Atendente();
+            Funcionario Funcionario = new Funcionario();
             try {
-                atendente = atendenteServices.FindAtendente(id);
+                Funcionario = funcionarioServices.FindFuncionario(id);
             } catch (SQLException e) {
                 e.printStackTrace();
             }
             Gson gson = new Gson();
-            String json = gson.toJson(atendente);
+            String json = gson.toJson(Funcionario);
             res.setContentType("application/json");
             res.getWriter().write(json);
         }
@@ -68,16 +67,13 @@ public class AtendenteController extends HttpServlet{
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException{
         try {
             String nome = req.getParameter("nome");
-            String telefone = req.getParameter("telefone");
-            String sexo = req.getParameter("sexo");
-            String nascimentoString = req.getParameter("nascimento");
-            LocalDate nascimento = LocalDate.parse(nascimentoString);
-            Atendente atendente = new Atendente(nome, telefone, sexo, nascimento);
+            String cargo = req.getParameter("cargo");
+            Funcionario funcionario = new Funcionario(nome, cargo);
             try {
-                atendenteServices.addAtendente(atendente);
+                funcionarioServices.addFuncionario(funcionario);
                 res.setStatus(HttpServletResponse.SC_OK);
             } catch (Exception e) {
-                res.getWriter().println("Erro ao adicionar atendente: " + e.getMessage());
+                res.getWriter().println("Erro ao adicionar funcionario: " + e.getMessage());
                 res.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             }
             
@@ -92,7 +88,7 @@ public class AtendenteController extends HttpServlet{
             String idString = req.getParameter("ID");
             Long id = Long.parseLong(idString);
             try {
-                atendenteServices.deleteAtendente(id);
+                funcionarioServices.deleteFuncionario(id);
                 res.setStatus(HttpServletResponse.SC_OK);
             } catch (Exception e) {
                 res.getWriter().println("Erro ao deletar: " + e.getMessage());
@@ -109,13 +105,12 @@ public class AtendenteController extends HttpServlet{
     protected void doPut(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
         try {
             String nome = req.getParameter("nome");
-            String telefone = req.getParameter("telefone");
-            String sexo = req.getParameter("sexo");
-            String nascimentoString = req.getParameter("nascimento");
-            LocalDate nascimento = LocalDate.parse(nascimentoString);
-            Atendente atendente = new Atendente(nome, telefone, sexo, nascimento);
+            String idString = req.getParameter("ID");
+            Long ID = Long.parseLong(idString);
+            String cargo = req.getParameter("cargo");
+            Funcionario funcionario = new Funcionario(ID, nome, cargo);
             try {
-                atendenteServices.updateAtendente(atendente);
+                funcionarioServices.updateFuncionario(funcionario);
                 res.setStatus(HttpServletResponse.SC_OK);
             } catch (Exception e) {
                 res.getWriter().println("Erro ao atualizar: " + e.getMessage());

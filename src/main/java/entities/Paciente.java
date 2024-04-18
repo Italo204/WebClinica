@@ -3,7 +3,6 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package entities;
-import java.time.LocalDate;
 
 /**
  *
@@ -11,14 +10,45 @@ import java.time.LocalDate;
  */
 
  
-public class Paciente extends Pessoa{
+public class Paciente{
 
-    public Paciente() {
-        
+    private Long ID;
+    private String nome;
+    private String dataNascimento;
+
+    public Paciente(Long ID, String nome, String dataNascimento) {
+        this.ID = ID;
+        this.nome = nome;
+        this.dataNascimento = dataNascimento;
     }
 
-    public Paciente(long ID, String nome, String email, String sexo, LocalDate nascimento) {
-        super(ID, nome, email, sexo, nascimento);
+    public Paciente(String nome, String dataNascimento) {
+        this.nome = nome;
+        this.dataNascimento = dataNascimento;
+    }
+
+    public Long getID() {
+        return ID;
+    }
+
+    public void setID(Long iD) {
+        ID = iD;
+    }
+
+    public String getNome() {
+        return nome;
+    }
+
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
+
+    public String getDataNascimento() {
+        return dataNascimento;
+    }
+
+    public void setDataNascimento(String dataNascimento) {
+        this.dataNascimento = dataNascimento;
     }
 
     @Override

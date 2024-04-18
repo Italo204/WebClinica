@@ -1,32 +1,27 @@
 package dao;
 
-import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Time;
 import java.util.ArrayList;
 import javax.swing.JOptionPane;
-import entities.Agendamento;
+import entities.Consulta;
 import interfaces.IDatabaseCRUD;
 import utils.Database;
-import java.time.LocalDate;
-import java.time.LocalTime;
 
-public class AgendamentoDAO implements IDatabaseCRUD<Agendamento>{
+public class ConsultaDAO implements IDatabaseCRUD<Consulta>{
+
     @Override
-    public void save(Agendamento agendamento) throws SQLException {
-        LocalDate DataAgendamento = agendamento.getData();
-        String sql = "INSERT INTO agendamento(DATA, MEDICO, NOME) VALUES (?, ?, ?) ;";
+    public void save(Consulta consulta) throws SQLException {
+        String sql = "INSERT INTO consulta(Data, MEDICO, PACIENTE, MOTIVO) VALUES (?, ?, ?, ?) ;";
         PreparedStatement ps = null;
-
-        Date data = Date.valueOf(DataAgendamento);
 
         try{
             ps = Database.getConexao().prepareStatement(sql.toString());
-            ps.setDate(1, data);
-            ps.setString(2, agendamento.getMedico());
-            ps.setString(3, agendamento.getNome());
+            ps.setString(1, consulta.getData());
+            ps.setString(2, consulta.getMedico());
+            ps.setString(3, consulta.getPaciente());
+            ps.setString(4, consulta.getMotivo());
 
             ps.executeUpdate();
             ps.close();
@@ -39,8 +34,8 @@ public class AgendamentoDAO implements IDatabaseCRUD<Agendamento>{
     }
 
     @Override
-    public Agendamento search(Long id) throws SQLException {
-        String sql = "SELECT A.IDAgendamento, A.Dia, A.motivo, " +
+    public Consulta search(Long id) throws SQLException {
+        String sql = "SELECT A.IDAgendamento, A.Data, A.motivo, " +
         "M.Nome AS NomeMedico, P.Nome AS NomePaciente " +
         "FROM Agendamento A "+
         "JOIN PACIENTE P ON A.IDPaciente = P.IDPaciente "+
@@ -53,12 +48,12 @@ public class AgendamentoDAO implements IDatabaseCRUD<Agendamento>{
             ps= Database.getConexao().prepareStatement(sql.toString());
             ps.setLong(1, id);
             ResultSet result = ps.executeQuery();
-            Agendamento agendamento = null;
+            Consulta consulta = null;
             if (result.next()){
-                agendamento =  new Agendamento(result.getLong("IDAgendamento"), result.getDate("Dia").toLocalDate(), 
-                result.getString("motivo"), result.getString("NomeMedico"), result.getString("Nome"));
+                consulta =  new Consulta(result.getLong("IDAgendamento"), result.getString("NomeMedico"), 
+                result.getString("NomePaciente"), result.getString("Data"), result.getString("motivo"));
             }
-            return agendamento;
+            return consulta;
         } catch(SQLException e) {
             JOptionPane.showMessageDialog(null, "Erro: " + e.getMessage(), "ERRO", JOptionPane.ERROR_MESSAGE);
             return null;
@@ -87,17 +82,14 @@ public class AgendamentoDAO implements IDatabaseCRUD<Agendamento>{
     }
 
     @Override
-    public int update(Agendamento agendamento) throws SQLException{
-        String sql = "UPDATE agendamento SET Dia = ?, motivo = ? WHERE IDAgendamento = ?;";
+    public int update(Consulta consulta) throws SQLException{
+        String sql = "UPDATE agendamento SET Data = ?, motivo = ? WHERE IDAgendamento = ?;";
         PreparedStatement ps = null;
-        LocalDate DiaAgen = agendamento.getData();
-
         try {
-            Date Dia = Date.valueOf(DiaAgen);
             ps = Database.getConexao().prepareStatement(sql.toString());
-            ps.setDate(1, Dia);
-            ps.setString(2, agendamento.getmotivo());
-            ps.setLong(3, agendamento.getID());
+            ps.setString(1, consulta.getData());
+            ps.setString(2, consulta.getMotivo());
+            ps.setLong(3, consulta.getID());
             int result = ps.executeUpdate();
             return result;
 
@@ -110,8 +102,8 @@ public class AgendamentoDAO implements IDatabaseCRUD<Agendamento>{
     }
 
     @Override
-    public ArrayList<Agendamento> findAll() throws SQLException {
-        String sql = "SELECT A.IDAgendamento, A.Dia, A.motivo, " +
+    public ArrayList<Consulta> findAll() throws SQLException {
+        String sql = "SELECT A.IDAgendamento, A.Data, A.motivo, " +
         "M.Nome AS NomeMedico, P.Nome AS NomePaciente " +
         "FROM Agendamento A "+
         "JOIN PACIENTE P ON A.IDPaciente = P.IDPaciente "+
@@ -123,18 +115,18 @@ public class AgendamentoDAO implements IDatabaseCRUD<Agendamento>{
         try {
             ps = Database.getConexao().prepareStatement(sql.toString());
             ResultSet rs = ps.executeQuery();
-            ArrayList<Agendamento> agendamento = new ArrayList<>();
+            ArrayList<Consulta> consultas = new ArrayList<>();
             while (rs.next()) {
                 long id = rs.getLong("id");
-                LocalDate dia = rs.getDate("Dia").toLocalDate();
+                String data = rs.getString("Data");
                 String motivo = rs.getString("motivo");
-                String Medico = rs.getString("Medico");
-                String nome = rs.getString("Nome");
+                String Medico = rs.getString("NomeMedico");
+                String nome = rs.getString("NomePaciente");
 
-                Agendamento agendamentos = new Agendamento(id, dia, motivo, Medico, nome);
-                agendamento.add(agendamentos);
+                Consulta consulta = new Consulta(id,Medico , nome, data, motivo );
+                consultas.add(consulta);
             }
-            return agendamento;
+            return consultas;
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Erro: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
             return null;

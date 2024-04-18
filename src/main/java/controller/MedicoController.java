@@ -6,60 +6,116 @@ package controller;
 
 import services.MedicoServices;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import com.google.gson.Gson;
 
 import entities.Medico;
 /**
  *
  * @author italo-santos-mendes
  */
-public class MedicoController {
-    private final MedicoServices medicoServices;
+public class MedicoController extends HttpServlet {
+    private static final long serialVersionUID = 1L;
+    private final MedicoServices medicoServices = new MedicoServices();
 
-    public MedicoController(){
-        this.medicoServices = new MedicoServices();
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+        Long id = null;
+        try {
+            String idString = req.getParameter("ID");
+            id = Long.parseLong(idString);
+        } catch (Exception e) {
+            res.getWriter().println("Não foi possível converter de String para Long");
+        }
+        if (id == null){
+            List<Medico> medicos = new ArrayList<>();
+            try {
+                medicos = medicoServices.findAllMedicos();
+            } catch (SQLException e) {
+            }
+            Gson gson = new Gson();
+            String json = gson.toJson(medicos);
+            res.setContentType("application/json");
+            res.getWriter().write(json);
+        } else{
+            Medico medico = new Medico();
+            try {
+                medico = medicoServices.searchMedico(id);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            Gson gson = new Gson();
+            String json = gson.toJson(medico);
+            res.setContentType("application/json");
+            res.getWriter().write(json);
+        }
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException{
+        try {
+            String nome = req.getParameter("nome");
+            String especialidade = req.getParameter("especialidade");
+            Medico medico = new Medico(nome, especialidade);
+            try {
+                medicoServices.addMedico(medico);
+                res.setStatus(HttpServletResponse.SC_OK);
+            } catch (Exception e) {
+                res.getWriter().println("Erro ao adicionar funcionario: " + e.getMessage());
+                res.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            }
+            
+        } catch (Exception e) {
+            res.getWriter().println("Erro: " + e.getMessage());
+        }
     }
     
-    public void saveMedico(Medico medico) {
-        try{
-            this.medicoServices.addMedico(medico);
-        } catch(SQLException e) {
-            System.out.println("Não foi possível cadastrar médico!");
-        }
-    }
-
-    public void updateMedico(Medico medico){
+    @Override
+    protected void doDelete(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException{
         try {
-            this.medicoServices.updateMedico(medico);
-        } catch (SQLException e) {
-            System.out.println("Não foi possível atualizar médico!");
+            String idString = req.getParameter("ID");
+            Long id = Long.parseLong(idString);
+            try {
+                medicoServices.deleteMedico(id);
+                res.setStatus(HttpServletResponse.SC_OK);
+            } catch (Exception e) {
+                res.getWriter().println("Erro ao deletar: " + e.getMessage());
+                res.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            }
+            
+        } catch (Exception e) {
+            res.getWriter().println("Erro ao deletar: " + e.getMessage());
+            res.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }
 
-    public void deleteMedico(Medico medico) {
+    @Override
+    protected void doPut(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
         try {
-            this.medicoServices.deleteMedico(medico.getID());
-        } catch(SQLException e) {
-            System.out.println("Não foi possível deletar médico!");
+            String nome = req.getParameter("nome");
+            String idString = req.getParameter("ID");
+            Long ID = Long.parseLong(idString);
+            String especialidade = req.getParameter("especialidade");
+            Medico medico = new Medico(ID, nome, especialidade);
+            try {
+                medicoServices.updateMedico(medico);
+                res.setStatus(HttpServletResponse.SC_OK);
+            } catch (Exception e) {
+                res.getWriter().println("Erro ao atualizar: " + e.getMessage());
+                res.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            }
+        } catch (Exception e) {
+            res.getWriter().println("Erro ao atualizar: " + e.getMessage());
+            res.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
-    }
-
-    public void searchMedico(Medico medico) {
-        try {
-            this.medicoServices.searchMedico(medico.getID());
-        } catch (SQLException e){
-            System.out.println("Não foi possível achar médico!");
-        }
-    }
-
-    public ArrayList<Medico> findAllMedicos() {
-        try{
-            return this.medicoServices.findAllMedicos();
-        } catch(SQLException e) {
-            System.out.println("Não foi possível achar os dados.");
-            return null;
-        }
-
     }
 }

@@ -8,55 +8,69 @@ package entities;
  *
  * @author italo-santos-mendes
  */
-public class Medico {
 
-    private Long ID;
+public class Funcionario{
+
+    private Long id;
+
     private String nome;
-    private String especialidade;
+
+    private String cargo;
 
     
-    public Medico() {
+    public Funcionario() {
     }
 
-    public Medico(String nome, String especialidade){  
+
+    public Funcionario(Long id, String nome, String cargo) {
+        this.id = id;
         this.nome = nome;
-        this.especialidade = especialidade;
+        this.cargo = cargo;
     }
 
-    public Medico(Long ID, String nome, String especialidade) {
-        this.ID = ID;
+
+    public Funcionario(String nome, String cargo) {
         this.nome = nome;
-        this.especialidade = especialidade;
+        this.cargo = cargo;
     }
 
-    
 
     public Long getId() {
-        return ID;
+        return id;
     }
 
-    public void setId(Long ID) {
-        this.ID = ID;
+
+    public void setId(Long id) {
+        this.id = id;
     }
+
 
     public String getNome() {
         return nome;
     }
 
+
     public void setNome(String nome) {
         this.nome = nome;
     }
 
-    public String getEspecialidade() {
-        return especialidade;
+
+    public String getCargo() {
+        return cargo;
     }
 
-    public void setEspecialidade(String especialidade) {
-        this.especialidade = especialidade;
+
+    public void setCargo(String cargo) {
+        this.cargo = cargo;
     }
+
 
     @Override
     public String toString(){
         return this.nome;
-    }
+    } 
+    
 }
+
+
+
